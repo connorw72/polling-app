@@ -18,7 +18,7 @@ if not os.getenv("JWT_SECRET_KEY"):
 app = Flask(__name__)
 
 # connection between backend and frontend
-CORS(app, origins=["http://localhost:3000"])
+CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
 
 # Uses database file called polling_app.db 
 # app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL", "sqlite:///polling_app.db")
@@ -39,14 +39,15 @@ socketio = SocketIO(app)
 def handle_connect():
     app.logger.info('Client connected.')
 
-# route import
+import os
+import sys
+sys.path.append(os.path.dirname(__file__))  # Ensure backend directory is in the path
 from routes import *
 
+
 # create tables (only if app is running)
-# with app.app_context():
-#     db.create_all()
-
-
+with app.app_context():
+    db.create_all()
 
 # start app
 if __name__ == "__main__":
