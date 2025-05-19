@@ -18,11 +18,11 @@ if not os.getenv("JWT_SECRET_KEY"):
 app = Flask(__name__)
 
 # connection between backend and frontend
-CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
-
+CORS(app, supports_credentials=True, resources={r"/*": {"origins": "http://localhost:3000"}})
 # Uses database file called polling_app.db 
-# app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL", "sqlite:///polling_app.db")
-app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///polling_app.db"
+basedir = os.path.abspath(os.path.dirname(__file__))
+
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(basedir, 'instance/polling_app.db')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Ensures secure logins
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "fallback_key_for_dev")
@@ -34,7 +34,7 @@ db = SQLAlchemy(app)
 # migrate
 migrate = Migrate(app, db)
 # socketIO
-socketio = SocketIO(app)
+socketio = SocketIO(app, cors_allowed_origins="http://localhost:3000")
 @socketio.on('connect')
 def handle_connect():
     app.logger.info('Client connected.')
@@ -51,4 +51,4 @@ with app.app_context():
 
 # start app
 if __name__ == "__main__":
-    socketio.run(app, debug=True)
+    socketio.run(app, debug=True, port=5000)

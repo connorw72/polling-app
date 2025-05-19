@@ -1,6 +1,7 @@
 from app import app, db
 from models import User, Poll, Option, Vote
 from flask import request, jsonify 
+from flask_cors import cross_origin
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -59,7 +60,7 @@ def login():
     # creates Json web token if email and password are valid
     access_token = create_access_token(identity=user.email)
     # success, return JWT
-    return jsonify({"msg": "Login successful", "access_token": access_token}), 200
+    return jsonify({"msg": "Login successful", "access_token": access_token, "is_admin": user.is_admin}), 200
 
 # create poll 
 @app.route('/create-poll', methods=['POST'])
@@ -117,17 +118,16 @@ def create_poll():
     }), 201
 
 # vote
-@app.route("/vote", methods=["POST"])
+@app.route("/vote/<int:poll_id>", methods=["POST"])
 @jwt_required()
-def vote():
+def vote(poll_id):
     user_email = get_jwt_identity()
     user = User.query.filter_by(email=user_email).first()
     if not user:
         return {"msg": "User not found"}, 404
 
     data = request.get_json()
-    poll_id = data.get("poll_id")
-    option_id = data.get("option_id")
+    option_id = data.get("optionId")
 
     poll = Poll.query.get(poll_id)
     if not poll:
@@ -150,6 +150,29 @@ def vote():
 
     return {"msg": "Vote cast successfully"}, 201
 
+@app.route('/polls', methods=["GET"])
+@jwt_required()
+def get_polls():
+    identity = get_jwt_identity()
+    current_user = User.query.filter_by(email=identity).first()
+
+    polls = Poll.query.all()
+    results = []
+    for poll in polls:
+        poll_data = {
+            "id": poll.id,
+            "question": poll.question,
+            "options": []
+        }
+        for option in poll.options:
+            poll_data["options"].append({
+                "id": option.id,
+                "text": option.text,
+                "votes": option.votes
+            })
+        results.append(poll_data)
+    return jsonify(results), 200
+
 # edit poll
 @app.route('/edit-poll/<int:poll_id>', methods=['PATCH'])
 @jwt_required()
@@ -157,6 +180,7 @@ def edit_poll(poll_id):
     # admin user
     current_user_email = get_jwt_identity()
     user = User.query.filter_by(email=current_user_email).first()
+
     if not user or not user.is_admin:
         return jsonify({"msg": "Unauthorized"}), 403
     
@@ -212,3 +236,23 @@ def get_poll_results(poll_id):
         "question":poll.question,
         "results":results
     }), 200
+
+
+#view user list
+@app.route("/admin/users", methods=["GET", "OPTIONS"])
+@cross_origin(supports_credentials=True)
+@jwt_required()
+def get_users():
+    current_user_email = get_jwt_identity()
+    user = User.query.filter_by(email=current_user_email).first()
+
+    if not user or not user.is_admin:
+        return jsonify({"msg": "Unauthorized"}), 403
+
+    users = User.query.all()
+    return jsonify([{
+        "id": u.id,
+        "email": u.email,
+        "username": u.username,
+        "is_admin": u.is_admin
+    } for u in users]), 200

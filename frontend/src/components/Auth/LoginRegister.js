@@ -12,32 +12,41 @@ import AwardsShow from "../../assets/images/AwardsShow.jpeg";
 import CustomPasswordInput from "../CustomPasswordInput";
 import CustomEmailInput from "../CustomEmailInput";
 import CustomUsernameInput from "../CustomUsernameInput";
+import { useNavigate } from "react-router-dom";
 
-const LoginRegister = () => {
+const LoginRegister = ({ setIsAuthenticated }) => {
     const [isLogin, setIsLogin] = useState(true);
     const [formData, setFormData] = useState({ email: "", username: "", password: "" });
     const [message, setMessage] = useState("");
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setMessage("");
-
+    
         const url = isLogin ? "http://127.0.0.1:5000/login" : "http://127.0.0.1:5000/register";
         const payload = isLogin
             ? { email: formData.email, password: formData.password }
             : formData;
-
+    
         try {
             const response = await fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
             });
-
+    
             const data = await response.json();
+    
             if (response.ok) {
                 setMessage(isLogin ? "Login successful!" : "Registration successful!");
-                if (isLogin) localStorage.setItem("token", data.access_token);
+                if (isLogin) {
+                    localStorage.setItem("authToken", data.access_token);  // Save token
+                    localStorage.setItem("is_admin", data.is_admin); // admin status
+
+                    setIsAuthenticated(true);
+                    navigate("/home");
+                }
             } else {
                 setMessage(data.msg || "An error occurred.");
             }
@@ -45,6 +54,7 @@ const LoginRegister = () => {
             setMessage("Failed to connect to the server.");
         }
     };
+
 
     return (
         <div style={{ display: "flex", height: "100vh", fontFamily: "'Poppins', sans-serif" }}>
