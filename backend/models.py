@@ -25,9 +25,9 @@ class Poll(db.Model):
         return f'<Poll {self.question}>'
 
     # option relationship
-    options = db.relationship("Option", backref="poll", lazy=True)
+    options = db.relationship("Option", backref="poll", lazy=True, cascade="all, delete")
     # votes relationship
-    votes = db.relationship('Vote', backref='poll', lazy=True) 
+    votes = db.relationship('Vote', backref='poll', lazy=True, cascade= "all, delete") 
 
 # Options model
 class Option(db.Model):

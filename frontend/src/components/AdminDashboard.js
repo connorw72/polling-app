@@ -82,6 +82,29 @@ const AdminDashboard = () => {
         setOptions(newOptions);
     };
 
+    const handleDeletePoll = async(pollId) => {
+        if(!window.confirm("Are you sure you want to delete this poll?")) return;
+
+        try {
+            const res = await fetch(`http://localhost:5000/delete-poll/${pollId}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+                },
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setMessage("Poll deleted successfully!");
+                fetchAdminData();
+            } else {
+                setMessage(data.msg || "Failed to delete poll.");
+            }
+        } catch (error){
+            console.error("Error deleting poll", error);
+            setMessage("Server error while deleting");
+        }
+    }
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setMessage("");
@@ -167,6 +190,9 @@ const AdminDashboard = () => {
                         <strong>{poll.question}</strong>
                         <button onClick={() => fetchPollResult(poll.id)} style={{ marginLeft: "10px" }}>
                             View Results
+                        </button>
+                        <button onClick={() => handleDeletePoll(poll.id)} style={{ marginLeft: "10px" }}>
+                            Delete
                         </button>
                     </li>
                 ))}

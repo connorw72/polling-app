@@ -5,6 +5,7 @@ import LoginRegister from "./components/Auth/LoginRegister";
 import HomePage from "./components/HomePage";
 import AdminDashboard from "./components/AdminDashboard";
 import VotesPage from "./components/Votes";
+import History from "./components/History";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -33,6 +34,7 @@ function App() {
         <Route path="/auth" element={isAuthenticated ? <Navigate to="/home" /> : <LoginRegister setIsAuthenticated={setIsAuthenticated} />} />
         <Route path="/home" element={isAuthenticated ? <HomePage onLogout={handleLogout} /> : <Navigate to="/auth" />} />
         <Route path="/vote" element={<VotesPage />} />
+        <Route path="/history" element={<History />} />
         <Route path="*" element={<Navigate to={isAuthenticated ? "/home" : "/auth"} />} />
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
       </Routes>

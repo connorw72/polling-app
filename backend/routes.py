@@ -210,6 +210,25 @@ def edit_poll(poll_id):
     db.session.commit()
     return jsonify({"msg":"Poll updated successfully"}), 200
 
+@app.route('/delete-poll/<int:poll_id>', methods=['DELETE'])
+@jwt_required()
+@cross_origin(supports_credentials=True)
+def delete_poll(poll_id):
+    current_user_email = get_jwt_identity()
+    user = User.query.filter_by(email=current_user_email).first()
+
+    if not user or not user.is_admin:
+        return jsonify({"msg": "unauthorized"}), 403
+
+    poll = Poll.query.get(poll_id)
+    if not poll:
+        return jsonify({"msg": "Poll not found"}), 404
+
+    db.session.delete(poll)
+    db.session.commit()
+    return jsonify({"msg": "poll deleted"}), 200
+
+
 # retrieve poll results
 @app.route('/poll-results/<int:poll_id>', methods=['GET'])
 @jwt_required()
