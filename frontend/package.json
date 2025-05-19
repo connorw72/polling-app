@@ -5,11 +5,11 @@
   "dependencies": {
     "@mantine/core": "^7.16.1",
     "@mantine/hooks": "^7.16.1",
-    "axios": "^1.7.9",
+    "axios": "^1.8.2",
     "cra-template": "1.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-router-dom": "^7.1.5",
+    "react-router-dom": "^7.6.0",
     "react-scripts": "5.0.1",
     "recharts": "^2.15.0",
     "web-vitals": "^4.2.4"
